@@ -85,12 +85,12 @@ const LogHubspotMessage = async (task: ITask, manager: Flex.Manager) => {
   }
   
   const params = {
+    conversationSid: task.attributes.conversationSid,
     hubspot_contact_id: task.attributes.hubspot_contact_id ?? null,
     hs_communication_channel_type: task.attributes.channelType == 'whatsapp' ? 'WHATS_APP' : 'SMS',
     hs_communication_logged_from: 'CRM',
     hs_communication_body: `${task.attributes.conversations?.outcome} - "${task.attributes.conversations?.content}"
-    - Duración: ${task.age} segundos
-    - Conversation ID: ${task.attributes.conversationSid}`,
+    - Duración: ${task.age} segundos`,
     hs_timestamp: Date.parse(task.dateCreated.toUTCString()),
   }
 
@@ -128,7 +128,11 @@ export default class FlexLogHubspotPlugin extends FlexPlugin {
       console.log(task.age);
     })
 
+    manager.events.addListener("taskCanceled", (task: ITask) => {
+      console.log('TASKCANCELED', task);
+    });
     manager.events.addListener('taskCompleted', (task: ITask) => {
+      console.log('TASKCOMPLETED', task);
       if (task.taskChannelUniqueName === 'voice') { 
         LogHubspotCall(task, manager);
       } else if (task.taskChannelUniqueName == 'chat' || task.taskChannelUniqueName == 'sms') {
